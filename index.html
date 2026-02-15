@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Ban Công Nghệ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Sử dụng Lucide Icons qua CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-dark: #1C4E75;
+            --primary-blue: #2FA0C6;
+            --bg-body: #F8FAFC;
+            --white: #FFFFFF;
+            --slate-100: #F1F5F9;
+            --slate-200: #E2E8F0;
+            --slate-400: #94A3B8;
+            --slate-500: #64748B;
+            --slate-800: #1E293B;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --transition: all 0.3s ease-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--slate-800);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: 256px;
+            background: var(--white);
+            border-right: 1px solid var(--slate-200);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            transition: var(--transition);
+            z-index: 50;
+        }
+
+        #sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--slate-100);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .logo-box {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-blue));
+            padding: 8px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .collapsed .logo-box { margin-right: 0; }
+
+        .sidebar-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary-dark);
+        }
+
+        .nav-list {
+            flex: 1;
+            padding: 24px 12px;
+            list-style: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 12px;
+            color: var(--slate-500);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 4px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .nav-item i { margin-right: 14px; flex-shrink: 0; }
+        .collapsed .nav-item i { margin-right: 0; }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--slate-100);
+            color: var(--primary-dark);
+        }
+
+        .nav-item.active {
+            background: var(--primary-dark);
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid var(--slate-100);
+        }
+
+        .btn-toggle, .btn-logout {
+            width: 100%;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            border: none;
+            background: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-toggle { color: var(--slate-400); }
+        .btn-toggle:hover { color: var(--primary-blue); background: var(--slate-50); }
+        .btn-logout { color: #EF4444; }
+        .btn-logout:hover { background: #FEF2F2; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        header {
+            height: 80px;
+            background: var(--white);
+            border-bottom: 1px solid var(--slate-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .header-left h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-left: 24px;
+            border-left: 1px solid var(--slate-100);
+        }
+
+        .user-info { text-align: right; }
+        .user-info p { font-weight: 700; font-size: 0.875rem; }
+        .user-info span { font-size: 0.75rem; color: #10B981; font-weight: 700; text-transform: uppercase; }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--slate-100);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-dark);
+            border: 1px solid var(--slate-200);
+        }
+
+        .content-body {
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* --- STATS --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid var(--slate-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover { border-color: var(--primary-blue); transform: translateY(-2px); }
+
+        .stat-icon {
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .stat-info p { font-size: 0.75rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-info h3 { font-size: 1.5rem; font-weight: 700; color: var(--slate-800); }
+
+        /* --- TABLE SECTION --- */
+        .table-container {
+            background: var(--white);
+            border-radius: 24px;
+            border: 1px solid var(--slate-200);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-header {
+            padding: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .table-header h2 { font-size: 1.125rem; font-weight: 700; }
+        .table-header p { font-size: 0.875rem; color: var(--slate-500); }
+
+        .btn-add {
+            background: var(--primary-dark);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-add:hover { background: var(--primary-blue); transform: translateY(-1px); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead { background: #F8FAFC; border-top: 1px solid var(--slate-100); border-bottom: 1px solid var(--slate-100); }
+        th { padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 20px 24px; vertical-align: middle; border-bottom: 1px solid var(--slate-50); }
+
+        .step-num { color: var(--slate-400); font-weight: 700; font-size: 0.9rem; }
+        .act-title { font-weight: 700; font-size: 1rem; color: var(--slate-800); }
+        .act-desc { font-size: 0.75rem; color: var(--slate-400); margin-top: 2px; }
+
+        .time-badge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .date-text { font-weight: 600; color: var(--slate-700); }
+        .hour-text { font-size: 0.7rem; color: var(--slate-400); background: var(--slate-100); padding: 2px 8px; border-radius: 99px; }
+
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+        .status-future { background: #EFF6FF; color: var(--primary-blue); border-color: #DBEAFE; }
+
+        .actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .btn-icon {
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            color: var(--slate-400);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-edit:hover { color: var(--primary-blue); background: #EFF6FF; }
+        .btn-delete:hover { color: #EF4444; background: #FEF2F2; }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--white);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            padding: 32px;
+            animation: modalIn 0.3s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h3 { font-size: 1.25rem; font-weight: 700; color: var(--primary-dark); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; margin-bottom: 6px; margin-left: 4px; }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--slate-50);
+            border: 1px solid var(--slate-100);
+            border-radius: 12px;
+            outline: none;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .form-input:focus { border-color: var(--primary-blue); background: white; box-shadow: 0 0 0 4px rgba(47, 160, 198, 0.1); }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-cancel, .btn-save {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-cancel { background: none; border: 1px solid var(--slate-200); color: var(--slate-500); }
+        .btn-cancel:hover { background: var(--slate-50); }
+        .btn-save { background: var(--primary-dark); border: none; color: white; }
+        .btn-save:hover { background: var(--primary-blue); transform: translateY(-1px); }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--slate-200); border-radius: 10px; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            #sidebar { width: 80px; }
+            .sidebar-title, .nav-item span, .btn-toggle span { display: none; }
+            .nav-item { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-box">
+                <i data-lucide="sparkles"></i>
+            </div>
+            <span class="sidebar-title">BCN PANEL</span>
+        </div>
+
+        <nav class="nav-list custom-scrollbar">
+            <a href="#" class="nav-item active">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Lộ trình</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i data-lucide="calendar"></i>
+                <span>Sự kiện</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i data-lucide="users"></i>
+                <span>Nhân sự</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i data-lucide="briefcase"></i>
+                <span>Dự án</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i data-lucide="bell"></i>
+                <span>Thông báo</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-toggle" onclick="toggleSidebar()">
+                <i data-lucide="chevron-left" id="toggle-icon"></i>
+                <span style="margin-left: 14px;">Thu gọn</span>
+            </button>
+            <button class="btn-logout">
+                <i data-lucide="log-out"></i>
+                <span style="margin-left: 14px;">Đăng xuất</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <header>
+            <div class="header-left">
+                <h1>Hải Trình Công Nghệ</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-info">
+                        <p>Admin BCN</p>
+                        <span>Trực tuyến</span>
+                    </div>
+                    <div class="avatar">
+                        <i data-lucide="user"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <!-- STATS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Tổng hoạt động</p>
+                        <h3 id="stat-count">04</h3>
+                    </div>
+                    <div class="stat-icon" style="background: #EEF2FF; color: #6366F1;">
+                        <i data-lucide="clock"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Thành viên K22</p>
+                        <h3>156</h3>
+                    </div>
+                    <div class="stat-icon" style="background: #EFF6FF; color: #3B82F6;">
+                        <i data-lucide="users"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Dự án thực tế</p>
+                        <h3>08</h3>
+                    </div>
+                    <div class="stat-icon" style="background: #ECFDF5; color: #10B981;">
+                        <i data-lucide="briefcase"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Tiến độ năm</p>
+                        <h3>72%</h3>
+                    </div>
+                    <div class="stat-icon" style="background: #F0FDFA; color: #14B8A6;">
+                        <i data-lucide="check-circle-2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE SECTION -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div>
+                        <h2>Quản lý Lộ trình</h2>
+                        <p>Cập nhật và chỉnh sửa các mốc thời gian quan trọng.</p>
+                    </div>
+                    <button class="btn-add" onclick="openModal()">
+                        <i data-lucide="plus"></i>
+                        Thêm hoạt động
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table id="activities-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px; text-align: center;">#</th>
+                                <th>Tên hoạt động</th>
+                                <th style="text-align: center;">Lịch trình</th>
+                                <th style="text-align: center;">Trạng thái</th>
+                                <th style="text-align: right;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- JS sẽ render ở đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Cấu hình Hải trình</h3>
+                <button class="btn-icon" onclick="closeModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <form id="activity-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label class="form-label">Tên hoạt động</label>
+                    <input type="text" id="title" class="form-input" required placeholder="Nhập tên hoạt động...">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Ngày diễn ra</label>
+                        <input type="date" id="date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Giờ bắt đầu</label>
+                        <input type="time" id="time" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mô tả công việc</label>
+                    <textarea id="description" class="form-input" rows="3" placeholder="Ghi chú thêm nội dung..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
+                    <button type="submit" class="btn-save" id="btn-save">Lưu hoạt động</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- DỮ LIỆU ---
+        let activities = [
+            { id: 1, step: 1, title: "Kết nối K22", date: "2026-03-15", time: "18:30", status: "Sắp tới", description: "Hòa nhập văn hóa, kết nối với Mentor." },
+            { id: 2, step: 2, title: "Workshop Core Tech", date: "2026-04-10", time: "14:00", status: "Sắp tới", description: "Học các kỹ năng lập trình C, Git." },
+            { id: 3, step: 3, title: "Dự án Thực chiến", date: "2026-06-20", time: "08:00", status: "Sắp tới", description: "Triển khai sản phẩm thực tế." },
+            { id: 4, step: 4, title: "Gala Tiếp nối", date: "2026-09-01", time: "19:00", status: "Sắp tới", description: "Lễ vinh danh và bàn giao thế hệ." }
+        ];
+
+        // --- RENDER TABLE ---
+        function renderActivities() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            activities.forEach((act) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="step-num" style="text-align: center;">0${act.step}</td>
+                    <td>
+                        <p class="act-title">${act.title}</p>
+                        <p class="act-desc">${act.description}</p>
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="time-badge">
+                            <span class="date-text">${act.date}</span>
+                            <span class="hour-text">${act.time}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="status-pill status-future">${act.status}</span>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-icon btn-edit" onclick="editActivity(${act.id})">
+                            <i data-lucide="edit-3" style="width: 18px;"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="deleteActivity(${act.id})">
+                            <i data-lucide="trash-2" style="width: 18px;"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('stat-count').innerText = activities.length < 10 ? `0${activities.length}` : activities.length;
+            lucide.createIcons(); // Re-render icons
+        }
+
+        // --- SIDEBAR TOGGLE ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggle-icon');
+            sidebar.classList.toggle('collapsed');
+            
+            if(sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+
+        // --- MODAL LOGIC ---
+        function openModal() {
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('modal-title').innerText = 'Thêm hoạt động';
+            document.getElementById('activity-form').reset();
+            document.getElementById('edit-id').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // --- CRUD ACTIONS ---
+        function deleteActivity(id) {
+            if(confirm('Bạn có chắc chắn muốn xóa hoạt động này?')) {
+                activities = activities.filter(a => a.id !== id);
+                // Update steps
+                activities.forEach((a, index) => a.step = index + 1);
+                renderActivities();
+            }
+        }
+
+        function editActivity(id) {
+            const act = activities.find(a => a.id === id);
+            if(!act) return;
+
+            openModal();
+            document.getElementById('modal-title').innerText = 'Chỉnh sửa hoạt động';
+            document.getElementById('edit-id').value = act.id;
+            document.getElementById('title').value = act.title;
+            document.getElementById('date').value = act.date;
+            document.getElementById('time').value = act.time;
+            document.getElementById('description').value = act.description;
+        }
+
+        // --- FORM SUBMIT ---
+        document.getElementById('activity-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('edit-id').value;
+            const newAct = {
+                title: document.getElementById('title').value,
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                description: document.getElementById('description').value,
+                status: 'Sắp tới'
+            };
+
+            if(id) {
+                // Update
+                const index = activities.findIndex(a => a.id == id);
+                activities[index] = { ...activities[index], ...newAct };
+            } else {
+                // Create
+                newAct.id = Date.now();
+                newAct.step = activities.length + 1;
+                activities.push(newAct);
+            }
+
+            renderActivities();
+            closeModal();
+        });
+
+        // Khởi tạo
+        window.onload = () => {
+            renderActivities();
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
